@@ -1,6 +1,7 @@
 import json
 import asyncio
 import redis
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,10 +14,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-r = redis.Redis()
+r = redis.Redis(host=os.getenv('REDIS_HOST', 'localhost'), port=int(os.getenv('REDIS_PORT', 6379)))
 
 
-@app.get("/api/candles/{symbol}")
+@app.get("/api/candles/{symbol:path}")
 def get_candles(symbol: str, limit: int = 200):
     redis_key = f"candles:{symbol.replace('-', '/')}"
     raw_candles = r.zrange(redis_key, -limit, -1)

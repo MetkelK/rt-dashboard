@@ -10,7 +10,7 @@ load_dotenv()
 API_KEY = os.environ["ALPACA_API_KEY"]
 SECRET_KEY = os.environ["ALPACA_SECRET_KEY"]
 
-producer = Producer({'bootstrap.servers': 'localhost:9092'})
+producer = Producer({'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')})
 
 
 def delivery_report(err, msg):

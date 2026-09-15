@@ -14,6 +14,9 @@ import {
   CandlestickElement,
 } from "chartjs-chart-financial";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const WS_URL = API_URL.replace(/^http/, "ws");
+
 Chart.register(
   CandlestickController,
   CandlestickElement,
@@ -40,7 +43,7 @@ interface CandlesResponse {
 }
 
 async function fetchCandles(symbol: string): Promise<CandlesResponse> {
-  const res = await fetch(`http://localhost:8000/api/candles/${symbol}`);
+  const res = await fetch(`${API_URL}/api/candles/${symbol}`);
   if (!res.ok) throw new Error("Failed to fetch candles");
   return res.json();
 }
@@ -97,7 +100,7 @@ function CandleChart({ symbol, height = 250 }: CandleChartProps) {
   }, [data]);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8000/ws/candles/${symbol}`);
+    const ws = new WebSocket(`${WS_URL}/ws/candles/${symbol}`);
 
     ws.onmessage = (event) => {
       const newCandle: Candle = JSON.parse(event.data);

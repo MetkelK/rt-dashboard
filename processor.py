@@ -1,15 +1,15 @@
 import json
 import redis
+import os
 from confluent_kafka import Consumer
 
 consumer = Consumer({
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'),
     'group.id': 'candle-processor',
     'auto.offset.reset': 'earliest',
 })
-consumer.subscribe(['market-ticks'])
 
-r = redis.Redis()
+r = redis.Redis(host=os.getenv('REDIS_HOST', 'localhost'), port=int(os.getenv('REDIS_PORT', 6379)))
 
 print("Listening for ticks...")
 
