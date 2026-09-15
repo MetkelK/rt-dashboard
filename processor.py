@@ -8,6 +8,7 @@ consumer = Consumer({
     'group.id': 'candle-processor',
     'auto.offset.reset': 'earliest',
 })
+consumer.subscribe(['market-ticks'])
 
 r = redis.Redis(host=os.getenv('REDIS_HOST', 'localhost'), port=int(os.getenv('REDIS_PORT', 6379)))
 
