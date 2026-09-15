@@ -13,6 +13,11 @@ services:
     ports:
       - "9092:9092"
       - "9644:9644"
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   ingest-kraken:
     build:
@@ -21,9 +26,11 @@ services:
     container_name: ingest-kraken
     command: ["python", "ingest_kraken.py"]
     environment:
+      - PYTHONUNBUFFERED=1
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_healthy
     restart: unless-stopped
 
   ingest-alpaca:
@@ -33,11 +40,13 @@ services:
     container_name: ingest-alpaca
     command: ["python", "ingest_alpaca.py"]
     environment:
+      - PYTHONUNBUFFERED=1
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
     env_file:
       - .env
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_healthy
     restart: unless-stopped
 
   processor:
@@ -47,11 +56,13 @@ services:
     container_name: processor
     command: ["python", "processor.py"]
     environment:
+      - PYTHONUNBUFFERED=1
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
       - REDIS_HOST=rt-dashboard-redis.wqyj6u.0001.use2.cache.amazonaws.com
       - REDIS_PORT=6379
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_healthy
     restart: unless-stopped
 
   api:
@@ -62,8 +73,10 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONUNBUFFERED=1
       - REDIS_HOST=rt-dashboard-redis.wqyj6u.0001.use2.cache.amazonaws.com
       - REDIS_PORT=6379
     depends_on:
-      - redpanda
+      redpanda:
+        condition: service_healthy
     restart: unless-stopped
