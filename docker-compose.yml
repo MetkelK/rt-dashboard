@@ -11,16 +11,59 @@ services:
       - --kafka-addr=PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
       - --advertise-kafka-addr=PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
     ports:
-      - "9092:9092" # Kafka-compatible port Python scripts connect to
-      - "9644:9644" # Redpanda admin API / status endpoint
+      - "9092:9092"
+      - "9644:9644"
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
+  ingest-kraken:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    container_name: ingest-kraken
+    command: ["python", "ingest_kraken.py"]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
+    depends_on:
+      - redpanda
+    restart: unless-stopped
+
+  ingest-alpaca:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    container_name: ingest-alpaca
+    command: ["python", "ingest_alpaca.py"]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
+    env_file:
+      - .env
+    depends_on:
+      - redpanda
+    restart: unless-stopped
+
+  processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    container_name: processor
+    command: ["python", "processor.py"]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:29092
+      - REDIS_HOST=rt-dashboard-redis.wqyj6u.0001.use2.cache.amazonaws.com
+      - REDIS_PORT=6379
+    depends_on:
+      - redpanda
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: api
     ports:
-      - "6379:6379" # default Redis port
-    volumes:
-      - redis-data:/data
-
-volumes:
-  redis-data:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=rt-dashboard-redis.wqyj6u.0001.use2.cache.amazonaws.com
+      - REDIS_PORT=6379
+    depends_on:
+      - redpanda
+    restart: unless-stopped

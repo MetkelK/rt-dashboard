@@ -1,0 +1,6 @@
+confluent-kafka
+redis
+python-dotenv
+websockets
+fastapi
+uvicorn
