@@ -1,0 +1,30 @@
+resource "aws_iam_role" "rt_dashboard_ec2_role" {
+  name = "rt-dashboard-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Project = "rt-dashboard"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_policy" {
+  role       = aws_iam_role.rt_dashboard_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "rt_dashboard_profile" {
+  name = "rt-dashboard-instance-profile"
+  role = aws_iam_role.rt_dashboard_ec2_role.name
+}
