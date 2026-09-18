@@ -12,7 +12,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:5175",
-        "d1qhsrzkm3vw60.cloudfront.net"
+        "https://d1qhsrzkm3vw60.cloudfront.net"
     ],
     allow_methods=["*"],
     allow_headers=["*"],
